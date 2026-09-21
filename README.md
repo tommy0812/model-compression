@@ -2,7 +2,7 @@
 
 **MobileViTv3 · ImageNet-100 · PyTorch → ONNX (Explicit QDQ) → TensorRT INT8 → NVIDIA Jetson AGX Orin**
 
-*By [Tommy Chen (陳龍懷)](https://linkedin.com/in/tommychen19920812) · M.S. Electrical and Computer Engineering, NYCU.*
+*By [Tommy Chen (陳龍懷)](https://linkedin.com/in/tommychen19920812)*
 
 A complete, measured compression pipeline: structured pruning of a hybrid CNN + Transformer
 backbone, accuracy recovery by knowledge distillation, Hessian-aware post-training
