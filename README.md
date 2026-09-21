@@ -12,8 +12,8 @@ both a desktop GPU and an embedded Jetson platform. Every number below comes fro
 
 ---
 
-> **Also in this repo:** [Depth Anything 3 — compression of a depth-estimation
-> foundation model](./DA3_Compression_Results.md) — KITTI fine-tuning, geometry-aware
+> **Also in this repo:** [Depth Anything 3 — compression of a depth estimation
+> model](./DA3_Compression_Results.md) — KITTI fine-tuning, geometry-aware
 > knowledge distillation with paired bootstrap confidence intervals, and P3B structured
 > pruning toward DA3-Small's compute budget *(in progress)*.
 
