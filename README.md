@@ -2,14 +2,20 @@
 
 **MobileViTv3 · ImageNet-100 · PyTorch → ONNX (Explicit QDQ) → TensorRT INT8 → NVIDIA Jetson AGX Orin**
 
-*By [Tommy Chen (陳龍懷)](https://linkedin.com/in/tommychen19920812) — Senior AI Algorithm
-Engineer, Compal Electronics. M.S. Electrical and Computer Engineering, NYCU.*
+*By [Tommy Chen (陳龍懷)](https://linkedin.com/in/tommychen19920812) · M.S. Electrical and Computer Engineering, NYCU.*
 
 A complete, measured compression pipeline: structured pruning of a hybrid CNN + Transformer
 backbone, accuracy recovery by knowledge distillation, Hessian-aware post-training
 quantization with block-wise reconstruction, and INT8 TensorRT deployment benchmarked on
 both a desktop GPU and an embedded Jetson platform. Every number below comes from a
 `trtexec` log or a full-validation-set run, not from a simulated-quantization estimate.
+
+---
+
+> **Also in this repo:** [Depth Anything 3 — compression of a depth-estimation
+> foundation model](./DA3_Compression_Results.md) — KITTI fine-tuning, geometry-aware
+> knowledge distillation with paired bootstrap confidence intervals, and P3B structured
+> pruning toward DA3-Small's compute budget *(in progress)*.
 
 ---
 
