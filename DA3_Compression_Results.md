@@ -2,8 +2,7 @@
 
 **DA3 (DINOv2 + DualDPT) · KITTI odometry · Geometry-aware knowledge distillation + P3B block pruning**
 
-*By [Tommy Chen (陳龍懷)](https://linkedin.com/in/tommychen19920812) — Senior AI Algorithm
-Engineer, Compal Electronics. M.S. Electrical and Computer Engineering, NYCU.*
+*By [Tommy Chen (陳龍懷)](https://linkedin.com/in/tommychen19920812)*
 
 Compressing a multi-view metric-depth model instead of a classifier. DA3 predicts dense
 depth, ray maps and point maps from a 5-frame window, so every compression decision has to
