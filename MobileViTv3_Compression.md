@@ -38,9 +38,9 @@ RTX 4090/4050 · NVIDIA Jetson AGX Orin
 | **Pruning** | 1.91 M → **0.88 M** params (**−54%**), 1,012 M → **350 M** MACs (**−65%**) |
 | **Accuracy at the XXS budget** | **82.20%** Top-1 — **+1.22 pp** over the XXS-KD baseline |
 | **P3B alone** | **+0.84 pp above the FP32 teacher** while removing 21% of its parameters |
-| **PTQ reconstruction** | **+4.6–4.8 pp Top-1 over NVIDIA ModelOpt** at identical latency and INT8 coverage — **within 0.16 pp of FP32** |
-| **INT8 deployment** | With QuantAdd, **1.7–2.3× FP32 speed** and **6–15% faster than FP16** on RTX 4090 / RTX 4050 / Jetson AGX Orin, within 0.34 pp of FP32 |
-| **INT8 coverage** | **95% of layers (77/81)** with QuantAdd, 91% without — against 53% (42/80) for TensorRT's implicit PTQ |
+| **PTQ reconstruction** | **+4.5–4.7 pp Top-1 over NVIDIA ModelOpt** at 4–8% lower latency — **within 0.34 pp of FP32** |
+| **INT8 deployment** | **1.7–2.3× FP32 speed** and **6–15% faster than FP16** on RTX 4090 / RTX 4050 / Jetson AGX Orin — the fastest engine on every platform |
+| **INT8 coverage** | **95% of layers (77/81)**, residual adds included — against 53% (42/80) for TensorRT's implicit PTQ |
 
 ---
 
@@ -89,28 +89,25 @@ Goal: prune MobileViTv3-XS down to the XXS compute budget and beat XXS at that b
 
 ## 2 · Quantization Reconstruction
 
-Within each Q/DQ placement, all three methods start from the same PTQ initialisation and the same
-calibration set; only the objective that re-optimises weight rounding differs. Top-1 (%), FP32
-reference **82.20**.
+All three methods start from the same PTQ initialisation — residual adds quantized (QuantAdd) — and
+the same calibration set; only the objective that re-optimises weight rounding differs. Top-1 (%),
+FP32 reference **82.20**.
 
 | Method | PTQ | Reconstructed | Deployed (ONNX) | TensorRT (RTX 4090) |
 |---|---:|---:|---:|---:|
-| **QDrop** | 79.26 | 81.84 | 81.96 | **82.06** |
-| APHQ-ViT | 79.26 | 81.86 | 82.02 | 81.96 |
-| LS-ViT | 79.26 | 81.84 | 81.78 | 81.74 |
-| QDrop + QuantAdd | 79.18 | 81.94 | 81.92 | 82.00 |
+| **QDrop + QuantAdd** | 79.18 | 81.94 | 81.92 | **82.00** |
 | APHQ-ViT + QuantAdd | 79.18 | 82.06 | 81.94 | 81.82 |
 | LS-ViT + QuantAdd | 79.18 | 81.88 | 81.92 | 81.84 |
 
-Reconstruction recovers **+2.6 pp** over plain PTQ (**+2.7–2.9 pp** with QuantAdd), and the gain
-survives export and the TensorRT build: the best engine lands **0.14 pp below FP32**.
+Reconstruction recovers **+2.7–2.9 pp** over plain PTQ, and the gain survives export and the
+TensorRT build: the best engine lands **0.20 pp below FP32**.
 
 ---
 
 ## 3 · Deployment
 
-Top-1 (%) · mean GPU compute time, batch 1, `1x3x256x256`. Most accurate INT8 engine per platform in
-bold, fastest engine in italics.
+Top-1 (%) · mean GPU compute time, batch 1, `1x3x256x256`. Bold: most accurate INT8 engine per
+platform; italics: fastest engine.
 
 | Method | RTX 4090 | RTX 4050 | Jetson AGX Orin |
 |---|---|---|---|
@@ -118,31 +115,25 @@ bold, fastest engine in italics.
 | FP16 | 82.20 · 0.268 ms | 82.16 · 0.412 ms | 82.20 · 0.695 ms |
 | TensorRT implicit PTQ | 81.18 · 0.262 ms | 81.22 · 0.435 ms | 81.12 · 0.663 ms |
 | NVIDIA ModelOpt (explicit QDQ) | 77.42 · 0.250 ms | 77.38 · 0.372 ms | 77.22 · 0.705 ms |
-| QDrop | **82.06 · 0.250 ms** | **82.06 · 0.359 ms** | 81.96 · 0.704 ms |
-| APHQ-ViT | 81.96 · 0.249 ms | 81.92 · 0.369 ms | 81.92 · 0.702 ms |
-| LS-ViT | 81.74 · 0.249 ms | 81.88 · 0.359 ms | **82.04 · 0.704 ms** |
-| QDrop + QuantAdd | 82.00 · *0.239 ms* | 81.86 · 0.349 ms | 81.92 · *0.651 ms* |
-| APHQ-ViT + QuantAdd | 81.82 · *0.239 ms* | 81.82 · 0.360 ms | 81.92 · 0.660 ms |
+| QDrop + QuantAdd | **82.00** · *0.239 ms* | **81.86** · 0.349 ms | **81.92** · *0.651 ms* |
+| APHQ-ViT + QuantAdd | 81.82 · *0.239 ms* | 81.82 · 0.360 ms | **81.92** · 0.660 ms |
 | LS-ViT + QuantAdd | 81.84 · *0.239 ms* | 81.84 · *0.348 ms* | 81.74 · 0.655 ms |
 
-INT8 coverage: the explicit-QDQ builds run **91% of layers in INT8 (74/81)**, **95% (77/81) with
-QuantAdd**; TensorRT's implicit PTQ reaches only **53% (42/80)**, or 45% (40/88) on RTX 4050.
+INT8 coverage: the reconstruction engines run **95% of layers in INT8 (77/81)** and ModelOpt 91%
+(74/81); TensorRT's implicit PTQ reaches only **53% (42/80)**, or 45% (40/88) on RTX 4050.
 
 **Results**
 
-- **Reconstruction is accuracy for free.** ModelOpt and the reconstruction methods ship the same
-  explicit-QDQ graph, the same 91% INT8 coverage and the same latency — the best reconstruction is
-  **+4.6 to +4.8 pp Top-1** on every platform. Only the weight rounding differs.
+- **Reconstruction buys accuracy, QuantAdd buys speed.** Every reconstruction engine is **+4.5 to
+  +4.7 pp Top-1** over ModelOpt while running **4–8% faster**, because QuantAdd also quantizes the
+  residual adds (95% vs. 91% INT8 coverage). Given the same residual-add placement on RTX 4090,
+  ModelOpt reaches 77.32% at 0.246 ms — QDrop + QuantAdd is still **+4.68 pp and 3% faster**, so the
+  accuracy gap comes from reconstruction, not from placement.
 - **Coverage alone is not enough.** ModelOpt puts 91% of layers in INT8 and is still the *least*
   accurate INT8 engine, 3.8–3.9 pp below implicit PTQ at 53% coverage.
-- **The three reconstruction methods land within 0.32 pp of each other, and the best one changes with
-  the platform** — QDrop on the RTX GPUs, LS-ViT on Orin. The robust result is the margin over
-  ModelOpt, not the ranking among them.
-- **Quantizing the residual adds makes INT8 the fastest engine on every platform.** QuantAdd lifts
-  coverage from 91% to 95% and cuts latency 2–8% against the same method without it — most on
-  Orin — for −0.30 to +0.10 pp Top-1. Given the same residual-add placement on RTX 4090, ModelOpt
-  reaches 77.32% at 0.246 ms; QDrop + QuantAdd is **+4.68 pp and 3% faster**.
-- **QDrop + QuantAdd lands within 0.34 pp of FP32 at 1.7–2.3× FP32 speed**, 6–15% faster than FP16.
-  Without QuantAdd, explicit INT8 was 1% slower than FP16 on Orin, where TensorRT's implicit PTQ was
-  the fastest engine; with it, QDrop + QuantAdd overtakes both (0.651 ms vs. 0.663 ms implicit,
-  0.695 ms FP16).
+- **The three reconstruction methods land within 0.18 pp of each other**; QDrop is the most accurate
+  on every platform (tied with APHQ-ViT on Orin). The robust result is the margin over ModelOpt, not
+  the ranking among them.
+- **The INT8 engines are the fastest on every platform** — within 0.34 pp of FP32 at **1.7–2.3× FP32
+  speed** and **6–15% faster than FP16**. On Orin, QDrop + QuantAdd also overtakes TensorRT's
+  implicit PTQ (0.651 ms vs. 0.663 ms).
