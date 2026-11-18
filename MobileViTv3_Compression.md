@@ -165,15 +165,6 @@ NPU. "FP16" is the FP32 model compiled without quantization, which the NPU runs 
 | APHQ-ViT w8a16 | 82.06 | 4.281 ms | −29.1% |
 | LS-ViT w8a16 | **82.12** | 4.275 ms | −29.2% |
 
-### The same method on every target (QDrop)
-
-| Platform | Runtime, precision | FP16: Top-1 · latency | QDrop: Top-1 · latency | Latency vs. FP16 | Top-1 vs. FP16 |
-|---|---|---|---|---:|---:|
-| RTX 4090 | TensorRT 10.10, INT8 | 82.20 · 0.267 ms | 81.98 · 0.238 ms | −10.9% | −0.22 |
-| Jetson AGX Orin | TensorRT 10.3, INT8 | 82.22 · 0.688 ms | 82.00 · 0.658 ms | −4.4% | −0.22 |
-| Galaxy S25 Ultra (NPU) | QNN, w8a8 | 82.10 · 6.034 ms | 81.44 · 3.741 ms | −38.0% | −0.66 |
-| Galaxy S25 Ultra (NPU) | QNN, w8a16 | 82.10 · 6.034 ms | 82.10 · 4.283 ms | −29.0% | 0.00 |
-
 **Results**
 
 - **Reconstruction beats each vendor's own quantizer:** +4.5–4.8 pp over NVIDIA ModelOpt on TensorRT,
