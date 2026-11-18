@@ -176,26 +176,11 @@ NPU. "FP16" is the FP32 model compiled without quantization, which the NPU runs 
 
 **Results**
 
-- **Reconstruction beats each vendor's own quantizer.** On TensorRT, every reconstruction engine is
-  **+4.5 to +4.8 pp** over ModelOpt and 4–6% faster. On the NPU, w8a8 is **+1.4 to +1.5 pp** over AI Hub's
-  quantizer, which produces the same graph and the same Q/DQ placement — the difference is entirely in the
-  numbers. Our plain PTQ (79.38%) is actually below AI Hub's (80.02%); learned rounding is what puts it ahead.
-  On TensorRT, a control run on RTX 4090 that gave ModelOpt the same residual-add placement reached only
-  77.32%, so the gap there is not placement either.
-- **8-bit pays off far more on the NPU.** INT8 cuts latency by 4–11% on the GPUs but by 38% on the Hexagon
-  NPU, and w8a16 keeps FP16 accuracy at 29% lower latency.
-- **Q/DQ placement is per target.** TensorRT mixes INT8 and FP16, so only Conv / Linear and the conv
-  residual adds are quantized; quantizing the residual adds lets TensorRT fuse each add into its convolution
-  (without it, the INT8 engine was slower than FP16 on Orin). The NPU path needs a fully fixed-point graph:
-  an export with the TensorRT placement compiled but failed to load on the phone. The NPU's fixed-point MatMul
-  also needs a symmetric second input, so the `to_qkv` outputs are quantized symmetrically.
-- **Coverage alone is not enough.** ModelOpt puts 91% of layers in INT8 and is still the least accurate
-  engine, 3.8–4.0 pp below TensorRT's implicit PTQ at 53%. The reconstruction engines match implicit PTQ's
-  speed on Orin and beat it on RTX 4090 (0.238 vs. 0.260 ms), while being 0.5–0.8 pp more accurate.
-- **The three reconstruction methods are tied** — within 0.22 pp of each other on every target, with no
-  consistent winner. The robust result is the margin over the vendor tools, not the ranking among them.
-- **Where the NPU time goes.** The six unfold / fold reshapes around the MobileViT blocks become 6-D
-  transposes on the NPU and take 74–83% of the critical path (AI Hub QHAS profile): data movement that
-  MACs don't count, and the next optimization target. Our w8a8 runs 0.06 ms slower than AI Hub's own,
-  mostly in these transposes; uploading the same model in AIMET format closes most of that gap for w8a8,
-  with bit-identical outputs.
+- **Reconstruction beats each vendor's own quantizer:** +4.5–4.8 pp over NVIDIA ModelOpt on TensorRT,
+  and +1.4–1.5 pp over AI Hub's quantizer on the NPU. The three methods are tied with each other.
+- **8-bit pays off far more on the NPU:** 38% lower latency than FP16, versus 4–11% on the GPUs;
+  w8a16 keeps FP16 accuracy.
+- **Q/DQ placement is per target:** TensorRT mixes INT8 and FP16, while the NPU needs a fully
+  fixed-point graph.
+- **Next bottleneck:** on the NPU, the unfold / fold reshapes around each MobileViT block take most of
+  the critical path — data movement that MACs don't count.
