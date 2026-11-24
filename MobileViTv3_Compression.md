@@ -175,3 +175,25 @@ NPU. "FP16" is the FP32 model compiled without quantization, which the NPU runs 
   fixed-point graph.
 - **Next bottleneck:** on the NPU, the unfold / fold reshapes around each MobileViT block take most of
   the critical path — data movement that MACs don't count.
+
+---
+
+## 4 · C++ TensorRT Inference
+
+The Python inference path rebuilt in C++ with the TensorRT C++ API, and compared with the Python pipeline
+on Jetson AGX Orin (TensorRT 10.3, batch 1).
+
+- Same QDrop INT8 engine for C++ and Python, GPU otherwise idle
+- Per-image mean over the 5,000 validation images, processed one at a time
+- Python preprocessing writes straight into the pinned input buffer
+
+| Per image | Python | C++ |
+|---|---:|---:|
+| Top-1 / Top-5 (%) | 82.00 / 96.06 | 82.00 / 96.06 |
+| GPU compute time (CUDA graph) | 0.663 ms | 0.655 ms |
+| Inference (pinned + CUDA graph, H2D → D2H) | 0.859 ms | 0.736 ms |
+| Preprocessing (JPEG → tensor) | 6.026 ms | 5.799 ms |
+| Postprocessing (top-5) | 0.038 ms | 0.002 ms |
+| **Total per image (JPEG → top-5)** | **6.922 ms** | **6.538 ms** |
+
+**Same accuracy, GPU time within ~1%:** C++ saves 0.38 ms per image (5.5%), almost all outside the engine.
